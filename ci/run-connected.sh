@@ -42,6 +42,7 @@ collect() {
 trap collect EXIT
 sudo -n timeout 1800 python3 "$bundle/sample-resources.py" "$result" > "$result/resource-sampler.log" 2>&1 &
 resource_sampler=$!
+bash "$bundle/ensure-job-kvm-access.sh" "$result/kvm-workload"
 [[ -r /dev/kvm && -w /dev/kvm ]] || { echo 'FAIL: runner user cannot access /dev/kvm'; exit 1; }
 [[ $(id -u) != 0 ]] || { echo 'FAIL: run as the unprivileged job user'; exit 1; }
 : "${ANDROID_SDK_ROOT:=${ANDROID_HOME:?Android SDK path required}}"
@@ -65,7 +66,7 @@ date -u +%FT%TZ > "$result/framework-ready.txt"
 timeout 10 adb -s "$ANDROID_SERIAL" shell getprop > "$result/android-properties.txt"
 timeout 10 adb -s "$ANDROID_SERIAL" shell dumpsys SurfaceFlinger > "$result/surfaceflinger.txt"
 if [[ -n "${ANDROID_SDK_ROOT:-}" ]]; then
-  find "$ANDROID_SDK_ROOT" -name source.properties -type f -exec cat {} + > "$result/sdk-revisions.txt"
+  python3 "$bundle/sdk-inventory.py" "$ANDROID_SDK_ROOT" > "$result/sdk-revisions.txt"
 fi
 cd "$project"
 # Avoid stale results and unreviewed sharing of Gradle state between attempts.

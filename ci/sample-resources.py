@@ -2,6 +2,7 @@
 """Bounded read-only guest resource samples; no process arguments or credentials."""
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import shutil
 import sys
@@ -37,7 +38,10 @@ with output.open('x', buffering=1) as writer:
             path = Path('/proc/pressure') / key
             pressure[key] = path.read_text() if path.exists() else None
         usage = shutil.disk_usage(directory)
+        cpu_ticks = list(map(int, Path('/proc/stat').read_text().splitlines()[0].split()[1:]))
         writer.write(json.dumps({'timestamp': datetime.now(timezone.utc).isoformat(),
                                 'memory': memory, 'vmstat': vmstat, 'kvm': kvm,
+                                'vm_cpu_ticks': cpu_ticks, 'clock_ticks_per_second': os.sysconf('SC_CLK_TCK'),
+                                'logical_cpus': os.cpu_count(), 'cpu_scope': 'whole GitHub runner VM, including platform services',
                                 'pressure': pressure, 'filesystem_free_bytes': usage.free}) + '\n')
         time.sleep(5)

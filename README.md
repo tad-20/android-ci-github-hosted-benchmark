@@ -18,6 +18,15 @@ huge-page reservation used by the Celesto staging environment. It does not
 disable kernel mitigations or change GitHub's memory policy. KVM access, if
 needed, is granted only to the job user through a device ACL.
 
+The first attempt booted Android but failed the subsequent KVM permission guard
+before compiling the app. It is retained as a failed setup sample. Access is now
+recorded and checked at initial setup, immediately before emulator launch, and
+at workload entry; only the same job user's device ACL may be restored. The
+strict permission check and actual unprivileged KVM API probe must both pass.
+Package inventory reads known metadata locations rather than recursively
+walking large, unrelated SDK/NDK trees. Whole-VM CPU ticks are sampled separately
+from waited-child CPU, which does not capture Gradle daemon work completely.
+
 Report GitHub assignment wait, tool normalization/setup, Android boot/readiness,
 APK build, install/launch, instrumentation, artifact upload, and whole-job time.
 Actual CPU model, resources, image version, JDK/SDK revisions, memory, swap and

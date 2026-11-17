@@ -38,17 +38,13 @@ jobs:
           free -b > artifacts/memory.txt
           df -B1 > artifacts/disk.txt
           test "$(id -u)" != 0
-          test -c /dev/kvm
-          if ! test -r /dev/kvm || ! test -w /dev/kvm; then
-            sudo setfacl -m "u:$(id -un):rw" /dev/kvm
-          fi
-          test -r /dev/kvm && test -w /dev/kvm
+          bash ci/ensure-job-kvm-access.sh artifacts/kvm-initial
           test -d "$JAVA_HOME_17_X64"
           printf 'JAVA_HOME=%s\n' "$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
           printf '%s/bin\n' "$JAVA_HOME_17_X64" >> "$GITHUB_PATH"
           printf 'ANDROID_AVD_HOME=%s/avd\nANDROID_USER_HOME=%s/android-user\nGRADLE_USER_HOME=%s/private-gradle\n' "$RUNNER_TEMP" "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
           printf '%s/platform-tools\n%s/emulator\n%s/cmdline-tools/latest/bin\n' "$ANDROID_HOME" "$ANDROID_HOME" "$ANDROID_HOME" >> "$GITHUB_PATH"
-          find "$ANDROID_HOME" -name source.properties -type f -exec cat {} + > artifacts/sdk-before.txt
+          python3 ci/sdk-inventory.py "$ANDROID_HOME" > artifacts/sdk-before.txt
       - name: Record JDK and install the upstream build-tools version
         shell: bash
         run: |
@@ -80,7 +76,7 @@ jobs:
           mkdir -p artifacts
           date -u +%FT%TZ > artifacts/last-measured-step.txt
           df -B1 > artifacts/disk-after.txt
-          find "$ANDROID_HOME" -name source.properties -type f -exec cat {} + > artifacts/sdk-after.txt
+          python3 ci/sdk-inventory.py "$ANDROID_HOME" > artifacts/sdk-after.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
