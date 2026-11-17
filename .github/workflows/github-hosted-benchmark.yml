@@ -51,6 +51,13 @@ jobs:
           set -euo pipefail
           java -version 2> artifacts/java.txt
           timeout 180 sdkmanager 'build-tools;34.0.0'
+      - name: Install the pinned emulator's native audio library dependency
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -n apt-get update
+          sudo -n apt-get install -y --no-install-recommends libpulse0
+          dpkg-query -W libpulse0 > artifacts/native-library-versions.txt
       - name: Run the same upstream app and instrumentation suite
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:

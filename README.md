@@ -26,6 +26,11 @@ strict permission check and actual unprivileged KVM API probe must both pass.
 Package inventory reads known metadata locations rather than recursively
 walking large, unrelated SDK/NDK trees. Whole-VM CPU ticks are sampled separately
 from waited-child CPU, which does not capture Gradle daemon work completely.
+The second attempt passed the KVM probes but stopped at the emulator's version
+diagnostic because this hosted image lacked `libpulse.so.0`. Setup now installs
+`libpulse0`, already present in the comparison image; its time is recorded as
+platform normalization. These setup failures did not execute app tests and
+must not be represented as completed Android timing samples.
 
 Report GitHub assignment wait, tool normalization/setup, Android boot/readiness,
 APK build, install/launch, instrumentation, artifact upload, and whole-job time.
